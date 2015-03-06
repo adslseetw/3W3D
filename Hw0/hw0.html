@@ -32,13 +32,13 @@ function init()
 	renderer.setSize (width, height);
 	document.body.appendChild (renderer.domElement);
 
-	scene = new THREE.Scene();
+	scene = new THREE.Scene(); //開一個空白場景
 	
-	var cubeGeometry = new THREE.BoxGeometry (10,10,10);
-	var cubeMaterial = new THREE.MeshLambertMaterial ({color: 0x1ec876});
+	var cubeGeometry = new THREE.BoxGeometry (10,10,10); //創造一個正立方體
+	var cubeMaterial = new THREE.MeshLambertMaterial ({color: 0x1ec876});//顏色
 	cube = new THREE.Mesh (cubeGeometry, cubeMaterial);
 
-	cube.position.set (50, 0, 0);
+	cube.position.set (50, 0, 0);//正立方體之放置處
 	scene.add (cube);
 
 	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);

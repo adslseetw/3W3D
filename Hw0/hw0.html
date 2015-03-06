@@ -32,16 +32,16 @@ function init()
 	renderer.setSize (width, height);
 	document.body.appendChild (renderer.domElement);
 
-	scene = new THREE.Scene(); //�}�@�Ӫťճ���
+	scene = new THREE.Scene(); //開一個空白場景
 	
-	var cubeGeometry = new THREE.BoxGeometry (10,10,10); //�гy�@�ӥ��ߤ���
-	var cubeMaterial = new THREE.MeshLambertMaterial ({color: 0x1ec876});//�C��
+	var cubeGeometry = new THREE.BoxGeometry (10,10,10); //創造一個正立方體
+	var cubeMaterial = new THREE.MeshLambertMaterial ({color: 0x1ec876});//顏色
 	cube = new THREE.Mesh (cubeGeometry, cubeMaterial);
 
-	cube.position.set (50, 0, 0);//���ߤ��餧��m�B
+	cube.position.set (50, 0, 0);//正立方體之放置處
 	scene.add (cube);
 
-	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);
+	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);//參數一:決定鏡頭所能容納的東西數量(廣角、窄)
 	camera.position.y = 500;
 	camera.position.z = 350;
 	camera.lookAt (new THREE.Vector3(0,0,0));

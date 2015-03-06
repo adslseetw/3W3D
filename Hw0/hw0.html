@@ -46,6 +46,10 @@ function init()
 	camera.position.z = 350;
 	camera.lookAt (new THREE.Vector3(0,0,0));
 
+	
+	// add control here (after the camera is defined)
+	controls = new THREE.OrbitControls (camera, render.domElement);
+	
 	// FLOOR
 	var floorTexture = new THREE.ImageUtils.loadTexture( '../images/UI4A33.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
@@ -68,8 +72,7 @@ function init()
 	
 	window.addEventListener ('resize', onWindowResize, false);
 	
-	// add control here (after the camera is defined)
-	controls = new THREE.OrbitControls (camera, render.domElement);
+
 }
 
 function onWindowResize ()//隨瀏覽器縮放整個場景

@@ -19,7 +19,7 @@
 
 var scene, renderer, camera;
 var cube;
-var controls
+var controls;
 
 init();
 animate();
@@ -67,9 +67,12 @@ function init()
 	scene.add (pointLight);
 	
 	window.addEventListener ('resize', onWindowResize, false);
+	
+	// add control here (after the camera is defined)
+	controls = new THREE.OrbitControls (camera, render.domElement);
 }
 
-function onWindowResize ()
+function onWindowResize ()//隨瀏覽器縮放整個場景
 {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -78,6 +81,7 @@ function onWindowResize ()
 
 function animate()
 {
+	controls.update();
 	requestAnimationFrame ( animate );  
 	renderer.render (scene, camera);
 }

@@ -19,7 +19,7 @@
 
 var scene, renderer, camera;
 var cube;
-var controls;
+var controls
 
 init();
 animate();
@@ -46,10 +46,6 @@ function init()
 	camera.position.z = 350;
 	camera.lookAt (new THREE.Vector3(0,0,0));
 
-	
-	// add control here (after the camera is defined)
-	controls = new THREE.OrbitControls (camera, render.domElement);
-	
 	// FLOOR
 	var floorTexture = new THREE.ImageUtils.loadTexture( '../images/UI4A33.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
@@ -71,8 +67,6 @@ function init()
 	scene.add (pointLight);
 	
 	window.addEventListener ('resize', onWindowResize, false);
-	
-
 }
 
 function onWindowResize ()//隨瀏覽器縮放整個場景
@@ -84,7 +78,6 @@ function onWindowResize ()//隨瀏覽器縮放整個場景
 
 function animate()
 {
-	controls.update();
 	requestAnimationFrame ( animate );  
 	renderer.render (scene, camera);
 }

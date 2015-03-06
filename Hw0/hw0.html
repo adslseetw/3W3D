@@ -11,8 +11,8 @@
 </head>
 
 <body>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/three.js/r70/three.min.js"></script>
-<script src="https://dl.dropboxusercontent.com/u/3587259/Code/Threejs/OrbitControls.js">
+<script src="../js/three.min.js"></script>
+<script src="../js/OrbitControls.js">
 </script>
 
 <script>
@@ -47,9 +47,9 @@ function init()
 	camera.lookAt (new THREE.Vector3(0,0,0));
 
 	// FLOOR
-	var floorTexture = new THREE.ImageUtils.loadTexture( '../images/UI4A33.jpg' );
+	var floorTexture = new THREE.ImageUtils.loadTexture( 'images/UI4A33.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
-	floorTexture.repeat.set( 4, 4 );
+	//floorTexture.repeat.set( 4, 4 );
 	var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
 	
 	var floorGeometry = new THREE.PlaneGeometry(500, 500);//, 10, 10);  // not clear what segment does

@@ -32,9 +32,6 @@ function init()
 	renderer.setSize (width, height);
 	document.body.appendChild (renderer.domElement);
 
-	renderer = new THREE.WebGLRenderer({antialias: true});
-	renderer.setSize (width, height);
-	
 	scene = new THREE.Scene(); //開一個空白場景
 	
 	var cubeGeometry = new THREE.BoxGeometry (10,10,10); //創造一個正立方體
@@ -88,7 +85,6 @@ function animate()
 	requestAnimationFrame ( animate );  
 	renderer.render (scene, camera);
 }
-
 
 
 </script>

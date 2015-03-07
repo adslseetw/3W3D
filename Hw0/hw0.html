@@ -32,6 +32,9 @@ function init()
 	renderer.setSize (width, height);
 	document.body.appendChild (renderer.domElement);
 
+	renderer = new THREE.WebGLRenderer({antialias: true});
+	renderer.setSize (width, height);
+	
 	scene = new THREE.Scene(); //開一個空白場景
 	
 	var cubeGeometry = new THREE.BoxGeometry (10,10,10); //創造一個正立方體
@@ -46,6 +49,9 @@ function init()
 	camera.position.z = 350;
 	camera.lookAt (new THREE.Vector3(0,0,0));
 
+	// add control here (after the camera is defined)
+	controls = new THREE.OrbitControls (camera, renderer.domElement);
+	
 	// FLOOR
 	var floorTexture = new THREE.ImageUtils.loadTexture( '../images/UI4A33.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping; 
@@ -78,6 +84,7 @@ function onWindowResize ()//隨瀏覽器縮放整個場景
 
 function animate()
 {
+	controls.update();
 	requestAnimationFrame ( animate );  
 	renderer.render (scene, camera);
 }

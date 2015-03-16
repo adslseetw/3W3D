@@ -117,8 +117,8 @@ function render() {
     earth.rotation.y = angle*360;
 
     angle2 = angle * 30;
-    moon.position.set(20 * Math.cos(angle2), 0, (-20) * Math.sin(angle2));
-    moon.rotation.y = angle2;
+    moon.position.set(20 * Math.cos(angle2-angle*360), 0, (-20) * Math.sin(angle2-angle*360));
+    moon.rotation.y = angle2-angle*360;
 	
 	renderer.render(sceneBack, cameraBack);
     renderer.render(scene, camera);

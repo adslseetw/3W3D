@@ -17,12 +17,17 @@
 
 <body> 
 <div id="info">demo page</div>
+<div id="info"> <br/>
+	 type <strong>z</strong> to toggle the spin<br/>
+	 (+ window resize)
+</div>
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script>
+<script src="../js/KeyboardState.js"></script>
 <script> 
 var camera,cameraBack, scene,sceneBack, renderer, sun, earth, angle = 0,
     clock, control;
-
+var turn = true, keyboard = new KeyboardState();;
 init();
 animate();
 
@@ -101,23 +106,29 @@ function onWindowResize() {
 }
 
 function animate() {
+	keyboard.update();
     control.update();
     requestAnimationFrame(animate);
+	if ( keyboard.down("Z")){
+		turn = !turn;
+	}
     render();
 }
 
 function render() {
-	renderer.clear();
-    angle += 6 * clock.getDelta() / 180 * 3.1416;  
-    earth.position.set(50 * Math.cos(angle), 0, (-50) * Math.sin(angle));
-    earth.rotation.y = angle*360;
+	if (turn) { 
+		renderer.clear();
+		angle += 6 * clock.getDelta() / 180 * 3.1416;  
+		earth.position.set(50 * Math.cos(angle), 0, (-50) * Math.sin(angle));
+		earth.rotation.y = angle*360;
 
-    angle2 = angle * 12;
-    moon.position.set(20 * Math.cos(angle2-angle*360), 0, (-20) * Math.sin(angle2-angle*360));
-    moon.rotation.y = angle2-angle*360;
-	
-	renderer.render(sceneBack, cameraBack);
-    renderer.render(scene, camera);
+		angle2 = angle * 12;
+		moon.position.set(20 * Math.cos(angle2-angle*360), 0, (-20) * Math.sin(angle2-angle*360));
+		moon.rotation.y = angle2-angle*360;
+		
+		renderer.render(sceneBack, cameraBack);
+		renderer.render(scene, camera);
+	}
 }
 </script>
 

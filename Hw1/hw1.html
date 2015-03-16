@@ -43,13 +43,18 @@ function init() {
         wireframe: false
     }));
 
+	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/earth.jpg');
     earth = new THREE.Mesh(new THREE.SphereGeometry(10),
     new THREE.MeshBasicMaterial({
-        wireframe: true
+		map:mapOverlay,
+        wireframe: false
     }));
+	
+	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/moon.jpeg');
     moon = new THREE.Mesh(new THREE.SphereGeometry(3),
     new THREE.MeshBasicMaterial({
-        wireframe: true
+        map:mapOverlay,
+        wireframe: false
     }));
     earth.add(moon);
     sun.add(earth);

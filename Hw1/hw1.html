@@ -44,14 +44,14 @@ function init() {
     }));
 
 	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/earth.jpg');
-    earth = new THREE.Mesh(new THREE.SphereGeometry(3),
+    earth = new THREE.Mesh(new THREE.SphereGeometry(5),
     new THREE.MeshBasicMaterial({
 		map:mapOverlay,
         wireframe: false
     }));
 	
 	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/moon.jpg');
-    moon = new THREE.Mesh(new THREE.SphereGeometry(5),
+    moon = new THREE.Mesh(new THREE.SphereGeometry(3),
     new THREE.MeshBasicMaterial({
         map:mapOverlay,
         wireframe: false

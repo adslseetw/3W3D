@@ -37,7 +37,7 @@ function init() {
     THREE.ImageUtils.crossOrigin = '';
     var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/sun.jpg');
     
-    sun = new THREE.Mesh(new THREE.SphereGeometry(50),
+    sun = new THREE.Mesh(new THREE.SphereGeometry(30),
     new THREE.MeshBasicMaterial({
         map:mapOverlay,
         wireframe: false
@@ -50,8 +50,8 @@ function init() {
         wireframe: false
     }));
 	
-	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/moon.jpeg');
-    moon = new THREE.Mesh(new THREE.SphereGeometry(3),
+	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/moon.jpg');
+    moon = new THREE.Mesh(new THREE.SphereGeometry(5),
     new THREE.MeshBasicMaterial({
         map:mapOverlay,
         wireframe: false

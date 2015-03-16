@@ -20,7 +20,7 @@
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script>
 <script> 
-var camera,cameraBack, scene,sceneBack, renderer, sun, earth, angle = 0,
+var camera, scene,sceneBack, renderer, sun, earth, angle = 0,
     clock, control;
 
 init();
@@ -34,7 +34,7 @@ function init() {
     cameraBack.lookAt(new THREE.Vector3(0, 0, 0));
 
     THREE.ImageUtils.crossOrigin = '';
-	var texture = THREE.ImageUtils.loadTexture('../images/Hw1/space.jpg);
+	var texture = THREE.ImageUtils.loadTexture('http://jyunming-chen.github.io/tutsplus/images/chia.jpg');
 
     var back = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
     new THREE.MeshBasicMaterial({

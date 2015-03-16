@@ -37,7 +37,7 @@ function init() {
     THREE.ImageUtils.crossOrigin = '';
     var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/sun.jpg');
     
-    sun = new THREE.Mesh(new THREE.SphereGeometry(100),
+    sun = new THREE.Mesh(new THREE.SphereGeometry(50),
     new THREE.MeshBasicMaterial({
         map:mapOverlay,
         wireframe: false

@@ -113,11 +113,11 @@ function animate() {
 function render() {
 	renderer.clear();
     angle += 6 * clock.getDelta() / 180 * 3.1416;  
-    earth.position.set(50 * Math.cos(angle), 0, -50 * Math.sin(angle));
-    earth.rotation.y = angle;
+    earth.position.set(50 * Math.cos(angle), 0, (-50) * Math.sin(angle));
+    earth.rotation.y = angle*30;
 
     angle2 = angle * 12;
-    moon.position.set(20 * Math.cos(angle2-angle), 0, -20 * Math.sin(angle2-angle));
+    moon.position.set(20 * Math.cos(angle2-angle), 0, (-20) * Math.sin(angle2-angle));
     moon.rotation.y = angle2-angle;
 	
 	renderer.render(sceneBack, cameraBack);

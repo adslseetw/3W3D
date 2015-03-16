@@ -20,7 +20,7 @@
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script>
 <script> 
-var camera, scene, renderer, sun, earth, angle = 0,
+var camera, scene,sceneBack, renderer, sun, earth, angle = 0,
     clock, control;
 
 init();
@@ -28,6 +28,7 @@ animate();
 
 function init() {
     clock = new THREE.Clock();
+	sceneBack = new THREE.Scene();
     scene = new THREE.Scene();
 
     camera = new THREE.PerspectiveCamera(20, window.innerWidth / window.innerHeight, 1, 1000);
@@ -35,6 +36,19 @@ function init() {
     scene.add(camera);
 
     THREE.ImageUtils.crossOrigin = '';
+	var texture = THREE.ImageUtils.loadTexture('http://jyunming-chen.github.io/tutsplus/images/chia.jpg');
+
+    var back = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
+    new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        opacity: 0.315
+    }));
+    back.material.depthTest = false;
+    back.material.depthWrite = false;
+    sceneBack.add(back);
+	
+	
     var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/sun.jpg');
     
     sun = new THREE.Mesh(new THREE.SphereGeometry(10),
@@ -65,13 +79,15 @@ function init() {
     scene.add(gridXZ);
 
     light = new THREE.PointLight(0xffffff);
-    light.position.set(100, 300, 200);
+    light.position.set(10, 30, 20);
     scene.add(light);
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x888888);
-
+	
+	renderer.autoClear = false;
+	
     control = new THREE.OrbitControls(camera, renderer.domElement);
     document.body.appendChild(renderer.domElement);
     window.addEventListener('resize', onWindowResize, false);
@@ -90,13 +106,13 @@ function animate() {
 }
 
 function render() {
-    angle += 6 * clock.getDelta() / 180 * 3.1416;
+    angle += 6 * clock.getDelta() / 180 * 3.1416;  
 
     earth.position.set(50 * Math.cos(angle), 0, -50 * Math.sin(angle));
     earth.rotation.y = angle;
 
     angle2 = angle * 12;
-    moon.position.set(20 * Math.cos(0), 0, -20 * Math.sin(0));
+    moon.position.set(20 * Math.cos(angle2), 0, -20 * Math.sin(angle2));
     moon.rotation.y = angle2;
 
     renderer.render(scene, camera);

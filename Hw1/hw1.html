@@ -56,21 +56,21 @@ function init() {
 	
     var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/sun.jpg');
     
-    sun = new THREE.Mesh(new THREE.SphereGeometry(10),
+    sun = new THREE.Mesh(new THREE.SphereGeometry(10,60,60),
     new THREE.MeshBasicMaterial({
         map:mapOverlay,
         wireframe: false
     }));
 
 	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/earth.jpg');
-    earth = new THREE.Mesh(new THREE.SphereGeometry(5),
+    earth = new THREE.Mesh(new THREE.SphereGeometry(5,60,60),
     new THREE.MeshBasicMaterial({
 		map:mapOverlay,
         wireframe: false
     }));
 	
 	var mapOverlay =  THREE.ImageUtils.loadTexture('../images/Hw1/moon.jpg');
-    moon = new THREE.Mesh(new THREE.SphereGeometry(3),
+    moon = new THREE.Mesh(new THREE.SphereGeometry(3,60,60),
     new THREE.MeshBasicMaterial({
         map:mapOverlay,
         wireframe: false

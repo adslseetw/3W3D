@@ -16,10 +16,14 @@
 </head>
 
 <body> 
-<div id="info">demo page</div>
-<div id="info"> <br/>
-	 type <strong>z</strong> to toggle the spin<br/>
-	 (+ window resize)
+
+<audio id="soundtrack" autoplay loop style="display:none">
+<source src="../music/space_music.mp3" type='audio/mp3'>
+</audio>
+
+<div id="info">demo page<br/>
+	 按下 <strong>z</strong> 來切換暫停/開始<br/>
+
 </div>
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script>
@@ -27,12 +31,12 @@
 <script> 
 var camera,cameraBack, scene,sceneBack, renderer, sun, earth, angle = 0,
     clock, control;
-var turn = true, keyboard = new KeyboardState();;
+var turn = true,soundVal = 1.0,sign = 1.0, keyboard = new KeyboardState();
 init();
 animate();
 
 function init() {
-
+	soundTrack = document.getElementById ('soundtrack');
 	sceneBack = new THREE.Scene();
     cameraBack = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);
     cameraBack.position.z = 5;
@@ -106,11 +110,17 @@ function onWindowResize() {
 }
 
 function animate() {
+
+	soundVal += sign*0.01;
+	soundVal = THREE.Math.clamp (soundVal, 0, 1);
+	soundtrack.volume = soundVal;
+
 	keyboard.update();
     control.update();
     requestAnimationFrame(animate);
 	if ( keyboard.down("Z")){
 		turn = !turn;
+		sign = turn ? -1 : 1;
 	}
     render();
 }

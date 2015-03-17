@@ -21,7 +21,7 @@
 <source src="../music/space_music.wav" type='audio/wav'>
 </audio>
 
-<div id="inf">demo page<br> 按下<strong>z</strong> 來切換暫停/開始<br> </div>
+<div id="info">demo page<br> 按下z來切換暫停/開始<br> </div>
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script>
 <script src="../js/KeyboardState.js"></script>
@@ -127,7 +127,9 @@ function animate() {
 	if ( keyboard.down("Z")){
 		toggle();
 	}
+	requestAnimationFrame ( animate );  
     render();
+
 }
 
 function render() {

@@ -18,7 +18,7 @@
 <body> 
 
 <audio id="soundtrack" autoplay loop style="display:none">
-<source src="../music/space_music.mp3" type='audio/mp3'>
+<source src="../music/space_music.wav" type='audio/mp3'>
 </audio>
 
 <div id="info">demo page<br/> 按下<strong>z</strong> 來切換暫停/開始<br/>
@@ -134,10 +134,10 @@ function render() {
 		angle2 = angle * 12;
 		moon.position.set(20 * Math.cos(angle2-angle*360), 0, (-20) * Math.sin(angle2-angle*360));
 		moon.rotation.y = angle2-angle*360;
-		
+	}
 		renderer.render(sceneBack, cameraBack);
 		renderer.render(scene, camera);
-	}
+	
 }
 </script>
 

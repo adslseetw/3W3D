@@ -21,8 +21,7 @@
 <source src="../music/space_music.wav" type='audio/wav'>
 </audio>
 
-<div id="info">demo page<br/> 按下<strong>z</strong> 來切換暫停/開始<br/>
-
+<div>demo page<br/> 按下<strong>z</strong> 來切換暫停/開始<br/>
 </div>
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script>
@@ -101,7 +100,16 @@ function init() {
     document.body.appendChild(renderer.domElement);
     window.addEventListener('resize', onWindowResize, false);
 }
-
+function toggle() {
+	turn = !turn;
+	sign = turn ? -1 : 1;
+	
+	if(turn){
+		clock.start();
+	}else{
+		clock.stop();
+	}
+}
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -118,13 +126,7 @@ function animate() {
     control.update();
     requestAnimationFrame(animate);
 	if ( keyboard.down("Z")){
-		turn = !turn;
-		sign = turn ? -1 : 1;
-		if(turn){
-			clock.start();
-		}else{
-			clock.stop();
-		}
+		toggle();
 	}
     render();
 }

@@ -102,8 +102,8 @@ function init() {
     window.addEventListener('resize', onWindowResize, false);
 }
 function toggle() {
-	turn = !turn;
 	sign = turn ? -1 : 1;
+	turn = !turn;
 	
 	if(turn){
 		clock.start();

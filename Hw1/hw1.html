@@ -119,9 +119,7 @@ function onWindowResize() {
 
 function animate() {
 
-	soundVal += sign*0.01;
-	soundVal = THREE.Math.clamp (soundVal, 0, 1);
-	soundtrack.volume = soundVal;
+
 
 	keyboard.update();
     control.update();

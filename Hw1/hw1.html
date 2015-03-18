@@ -118,6 +118,10 @@ function onWindowResize() {
 }
 
 function animate() {
+	if ( keyboard.down("Z")){
+		toggle();
+	}
+
 	soundVal += sign*0.01;
 	soundVal = THREE.Math.clamp (soundVal, 0, 1);
 	soundtrack.volume = soundVal;
@@ -125,9 +129,7 @@ function animate() {
 	keyboard.update();
     control.update();
     requestAnimationFrame(animate);
-	if ( keyboard.down("Z")){
-		toggle();
-	}
+
     render();
 
 }

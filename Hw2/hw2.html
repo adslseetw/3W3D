@@ -22,8 +22,9 @@
 <source src="../music/wood_door_close.mp3" type='audio/mp3'>
 </audio>
 
-<div id="info">
+<div id="info">è«‹æŒ‰ä¸‹
 	<a href="javascript:tuggle();">tuggle</a>
+	ä¾†åˆ‡æ›é–‹/é—œé–€
 	<br/>
 </div>
 <script src="../js/three.min.js"></script>
@@ -48,14 +49,14 @@ function init()
 	var height = window.innerHeight;
 	renderer.setSize (width, height);
 	document.body.appendChild (renderer.domElement);
-	scene = new THREE.Scene(); //¶}¤@­ÓªÅ¥Õ³õ´º
+	scene = new THREE.Scene(); //é–‹ä¸€å€‹ç©ºç™½å ´æ™¯
 	
-	//¤ìÀY§÷½è¤Î¨ä¦Ç¶¥¹Ï
+	//æœ¨é ­æè³ªåŠå…¶ç°éšåœ–
 	THREE.ImageUtils.crossOrigin = '';
     var texture = THREE.ImageUtils.loadTexture('../images/Hw2/texture_wood.png');
     var bumptex = THREE.ImageUtils.loadTexture('../images/Hw2/texture_wood_gray.png');
 	//----------------------------
-	//ªù®Ø
+	//é–€æ¡†
 
     var columnGeom = new THREE.BoxGeometry(2, 42, 4);
     var platformGeom = new THREE.BoxGeometry(25, 2, 4);
@@ -72,9 +73,9 @@ function init()
     scene.add(mesh1);
     scene.add(mesh2);
 	//---------------------------
-	//ªù®ê
-	var boltGeometry = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);//¤W¶ê¥b®|¡B¤U¶ê¥b®|¡Bªø«×
-	var boltMaterial = new THREE.MeshLambertMaterial ({color: 0xbbbb44});//ÃC¦â
+	//é–€æ “
+	var boltGeometry = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);//ä¸Šåœ“åŠå¾‘ã€ä¸‹åœ“åŠå¾‘ã€é•·åº¦
+	var boltMaterial = new THREE.MeshPhongMaterial ({color: 0xbbbb44,shininess: 30});//é¡è‰²
 	var bolt = new THREE.Mesh (boltGeometry, boltMaterial);
 	bolt.position.set (61.9, 30, -0.7);
 	var bolt2 = bolt.clone(); 
@@ -83,34 +84,48 @@ function init()
 	scene.add (bolt2);
 	//---------------------------
 	
-	//ªùªO
+	//é–€æ¿
 	frame = new THREE.Object3D();
     scene.add(frame);
 
-	var cubeGeometry = new THREE.BoxGeometry (24,40,2); //³Ğ³y¤@­Ó¥¿¥ß¤èÅé
-	var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xcec876, map: texture,bumpMap: bumptex});//§÷½è©MÃC¦â
+	var cubeGeometry = new THREE.BoxGeometry (24,40,2); //å‰µé€ ä¸€å€‹æ­£ç«‹æ–¹é«”
+	var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xcec876, map: texture,bumpMap: bumptex});//æè³ªå’Œé¡è‰²
 	var cube = new THREE.Mesh (cubeGeometry, cubeMaterial);
 
-	//cube.position.set (50, 20, 0);//¥¿¥ß¤èÅé¤§©ñ¸m³B
-	cube.position.set (-12, 0, 0);//¥¿¥ß¤èÅé¤§©ñ¸m³B
+	//cube.position.set (50, 20, 0);//æ­£ç«‹æ–¹é«”ä¹‹æ”¾ç½®è™•
+	cube.position.set (-12, 0, 0);//æ­£ç«‹æ–¹é«”ä¹‹æ”¾ç½®è™•
 	frame.add (cube);
 	//---------------------------
 	
-	//ªùÂê
-	var handbarGeometry = new THREE.CylinderGeometry(1, 1, 4, 32);//¤W¶ê¥b®|¡B¤U¶ê¥b®|¡Bªø«×
+	//é–€é–
+	var handbarGeometry = new THREE.CylinderGeometry(1, 1, 4, 32);//ä¸Šåœ“åŠå¾‘ã€ä¸‹åœ“åŠå¾‘ã€é•·åº¦
 	var lockGeometry = new THREE.SphereGeometry(2,60,60);
-	var lockMaterial = new THREE.MeshLambertMaterial ({color: 0xbbbb44});//ÃC¦â
+	var lockMaterial = new THREE.MeshPhongMaterial ({color: 0xbbbb44,shininess: 100});//é¡è‰²
 	var lock = new THREE.Mesh (lockGeometry, lockMaterial);
 	var handbar = new THREE.Mesh (handbarGeometry, lockMaterial);
+	
+	var lock2 = new THREE.Mesh (lockGeometry, lockMaterial);
+	var handbar2 = new THREE.Mesh (handbarGeometry, lockMaterial);
+	
 	handbar.rotation.order = 'YZX'; // default 'XYZ'
 	handbar.rotation.z = angle;
 	handbar.rotation.y = angle;
 	handbar.position.set (-20, 0, 2);
-	lock.position.set (-20, 0, 5);//ªù§â¤§©ñ¸m³B
+	lock.position.set (-20, 0, 5);//é–€æŠŠä¹‹æ”¾ç½®è™•
+	
+	handbar2.rotation.order = 'YZX'; // default 'XYZ'
+	handbar2.rotation.z = -1*angle;
+	handbar2.rotation.y = -1*angle;
+	handbar2.position.set (-20, 0, -2);
+	lock2.position.set (-20, 0, -5);//é–€æŠŠä¹‹æ”¾ç½®è™•
+
 	frame.add (handbar);
 	frame.add (lock);
+	frame.add (handbar2);
+	frame.add (lock2);
+	
 	//---------------------------
-	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);//°Ñ¼Æ¤@:¨M©wÃèÀY©Ò¯à®e¯ÇªºªF¦è¼Æ¶q(¼s¨¤¡B¯¶)
+	camera = new THREE.PerspectiveCamera (45, width/height, 1, 10000);//åƒæ•¸ä¸€:æ±ºå®šé¡é ­æ‰€èƒ½å®¹ç´çš„æ±è¥¿æ•¸é‡(å»£è§’ã€çª„)
 	camera.position.y = 500;
 	camera.position.z = 350;
 	camera.lookAt (new THREE.Vector3(0,0,0));
@@ -121,15 +136,19 @@ function init()
 	var gridXZ = new THREE.GridHelper(100, 10);
     gridXZ.setColors(new THREE.Color(0xff0000), new THREE.Color(0xffffff));
     scene.add(gridXZ);
-	
+
 	var pointLight = new THREE.PointLight (0xffffff);
 	pointLight.position.set (100,300,200);
 	scene.add (pointLight);
 	
+	var pointLight2 = new THREE.PointLight (0xffffff);
+	pointLight2.position.set (100,300,-200);
+	scene.add (pointLight2);
+	
 	window.addEventListener ('resize', onWindowResize, false);
 }
 
-function onWindowResize ()//ÀHÂsÄı¾¹ÁY©ñ¾ã­Ó³õ´º
+function onWindowResize ()//éš¨ç€è¦½å™¨ç¸®æ”¾æ•´å€‹å ´æ™¯
 {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
@@ -159,7 +178,7 @@ function render() {
 		}else{
 			frame.rotation.y -= sign;
 		}
-		if(frame.rotation.y < c/20 && frame.rotation.y > c/50)
+		if(frame.rotation.y < c/25 && frame.rotation.y > c/50)
 			close_sound.play();
 	}
 

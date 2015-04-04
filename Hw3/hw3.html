@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#info {
+	position: absolute;
+	top: 0px; width: 100%;
+	font-family: Monospace;
+	font-size: 20px;
+	padding: 5px;
+	text-align: center;
+	color: #FF8000
+}
+</style>
+</head>
+<body>
+<div id="info">hw3  <br/>按住方向鍵即可操控車輪!</div>
+<script src="../js/three.min.js"></script>
+<script src="../js/OrbitControls.js"></script> 
+<script src="../js/KeyboardState.js"></script>
+<script type="x-shader/x-fragment" id="fragmentShaderDepth">
+    uniform sampler2D texture;
+    varying vec2 vUV;
+    vec4 pack_depth(const in float depth) {
+        const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);
+        const vec4 bit_mask = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);
+        vec4 res = fract(depth * bit_shift);
+        res -= res.xxyz * bit_mask;
+        return res;
+    }
+
+    void main() {
+        vec4 pixel = texture2D(texture, vUV);
+        if (pixel.a < 0.5) discard;
+        gl_FragData[0] = pack_depth(gl_FragCoord.z);
+    }
+</script>
+<script type="x-shader/x-vertex" id="vertexShaderDepth">
+    varying vec2 vUV;
+
+    void main() {
+        vUV = 1.0 * uv;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+    }
+</script>
+<script>
+var camera, scene, renderer, geometry, material, spotLight, controls, material1;
+var clock = new THREE.Clock();
+var keyboard = new KeyboardState();
+var angle = 0, speed = 5;
+var rt, alpha, h, ly;
+
+// state variables of toycar
+var pos = new THREE.Vector3(0,0,0);
+var angle = 0, speed = 0;
+init();
+animate();
+
+function init() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000000);
+    camera.position.z = 500;
+    scene.add(camera);
+
+	//圖片-----------------------------------------------------------------------
+    THREE.ImageUtils.crossOrigin = '';
+	var tire_map = THREE.ImageUtils.loadTexture('../images/Hw3/tire.jpg');
+    var tire_bump = THREE.ImageUtils.loadTexture('../images/Hw3/tire_gray.jpg');
+    var tire_slide_map = THREE.ImageUtils.loadTexture('../images/Hw3/tire_slide.png');
+	var tire_slide_map = THREE.ImageUtils.loadTexture('../images/Hw3/tire_slide.png');
+	var lamp_map = THREE.ImageUtils.loadTexture('../images/Hw3/lamp.jpg');
+	
+	tire_bump.wrapS = tire_bump.wrapT = THREE.RepeatWrapping; 
+	tire_bump.repeat.set( 8, 1 );//重複貼模組，使其較為美觀及真實
+	tire_map.wrapS = tire_map.wrapT = THREE.RepeatWrapping; 
+	tire_map.repeat.set( 8, 1 );
+
+	//模組設定(大小、材質)-----------------------------------------------------------------------
+    geometry = new THREE.CircleGeometry(56, 56);
+    material = new THREE.MeshPhongMaterial({
+        map: tire_slide_map,
+        transparent: true
+    });
+	
+	geometry1 = new THREE.CylinderGeometry(50, 50, 28, 40, 1, true);
+    material1 =  new THREE.MeshPhongMaterial({
+	    map: tire_map,
+		bumpMap:tire_bump,
+        side: THREE.DoubleSide
+    });
+	//產生模組-----------------------------------------------------------------------
+    var mesh_tire_slide = new THREE.Mesh(geometry, material);
+    var mesh_tire = new THREE.Mesh(geometry1, material1);
+    var uniforms = {
+        texture: {
+			type: "t",
+            value: tire_slide_map
+		}
+    };
+	//陰影材質
+    var vertexShader = document.getElementById('vertexShaderDepth').textContent;
+    var fragmentShader = document.getElementById('fragmentShaderDepth').textContent;
+    mesh_tire_slide.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	
+    mesh_tire.rotation.x = Math.PI / 2;
+    mesh_tire_slide.position.set(0, 0, 13);
+	mesh_tire_slide_out = mesh_tire_slide.clone();
+	mesh_tire_slide_out.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+
+    mesh_tire_slide_2 = mesh_tire_slide.clone();
+	mesh_tire_slide_2.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	
+    mesh_tire_slide_2.position.set(0, 0, -13);
+	mesh_tire_slide_2_out = mesh_tire_slide_2.clone();
+	mesh_tire_slide_2_out.customDepthMaterial = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader
+    });
+	
+    mesh_tire_slide_2.rotation.y = Math.PI;
+    mesh_tire_slide_out.rotation.y = Math.PI;
+
+	//將各個模組組合成一個物件
+	tire = new THREE.Object3D();
+    tire.add(mesh_tire_slide);
+	tire.add(mesh_tire_slide_out);
+    tire.add(mesh_tire_slide_2);
+	tire.add(mesh_tire_slide_2_out);
+    tire.add(mesh_tire);
+	tire.position.set(0,0,0);
+    scene.add(tire);
+    if (tire != undefined) { 
+        tire.scale.set (0.3,0.3,0.3);
+	}
+	
+    // lamp parameters
+    ly = 300;
+    rt = 40;
+    h = 80;
+    alpha = Math.PI / 6;
+    var rb = rt + h * Math.tan(alpha);
+
+    geometry = new THREE.CylinderGeometry(rt, rb, h, 20, 1, true);
+    material3 = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+		map: lamp_map
+    });
+    mesh_lamp = new THREE.Mesh(geometry, material3);
+    mesh_lamp.position.setY(-h / 2); // so that top face is on XZ plane
+
+    lamp = new THREE.Object3D();
+    lamp.add(mesh_lamp);
+    lamp.position.setY(ly);
+    scene.add(lamp);
+ 
+    // spotlight
+    spotLight = new THREE.SpotLight(0xffffff, 1.5);
+    spotLight.position.set(0, ly, 0);
+    spotLight.angle = alpha;
+    spotLight.exponent = 50;
+    scene.add(spotLight);
+    spotLight.target = tire; 
+	
+	// ground
+    var groundTexture = new THREE.ImageUtils.loadTexture( '../images/Hw2/texture_wood.png' );
+	var groundMaterial = new THREE.MeshLambertMaterial( { map: groundTexture, side: THREE.DoubleSide } );
+    var ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000, 50, 50),
+    groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+
+	// spotLight follows the box
+    //////////////////////////
+    spotLight.castShadow = true;
+    spotLight.shadowCameraNear = 10;
+	spotLight.shadowCameraFar = camera.far;
+	spotLight.shadowCameraFov = 30;  // in degrees
+	spotLight.shadowBias = -0.00022;
+	spotLight.shadowDarkness = 0.5;
+	spotLight.shadowMapWidth = 2048;
+	spotLight.shadowMapHeight = 2048;
+	scene.add( spotLight );
+	
+	ground.castShadow = true; ground.receiveShadow = true;
+    mesh_tire_slide_out.castShadow = true; mesh_tire_slide_out.receiveShadow = true;
+	mesh_tire_slide.castShadow = true; mesh_tire_slide.receiveShadow = true;
+	mesh_tire_slide_2.castShadow = true; mesh_tire_slide_2.receiveShadow = true;
+	mesh_tire_slide_2_out.castShadow = true; mesh_tire_slide_2_out.receiveShadow = true;
+	mesh_tire.castShadow = true; mesh_tire.receiveShadow = true;
+
+    var amblight = new THREE.AmbientLight(0x555555); // soft white light
+    scene.add(amblight);
+	
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x111111);
+	renderer.shadowMapEnabled = true;
+	renderer.shadowMapType = THREE.PCFShadowMap;
+	
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    document.body.appendChild(renderer.domElement);
+}
+
+function animate()
+{
+	var dt = clock.getDelta();
+	
+	var dir = new THREE.Vector3(1,0,0);
+	dir.multiplyScalar (dt*speed);
+	dir.applyAxisAngle (new THREE.Vector3(0,1,0), angle);
+	pos.add (dir); 	//pos = pos + dir;
+	tire.rotation.z += -speed*dt/10;
+	if (tire != undefined) { 
+		tire.position.set (pos.x, pos.y+15, pos.z);
+		tire.rotation.y = angle;
+	}
+	 // rotating lamp
+    var axis = new THREE.Vector3();
+    var d = new THREE.Vector3();
+    var p = new THREE.Vector3();
+    p = tire.position.clone().sub(new THREE.Vector3(0, ly, 0)).normalize();
+    d = new THREE.Vector3(0, -1, 0);
+    axis.crossVectors(d, p).normalize();
+    var rotangle = Math.acos(d.dot(p));
+	lamp.setRotationFromAxisAngle(axis, rotangle);
+	requestAnimationFrame ( animate ); 
+	update();
+	render(); 
+}
+
+function myclamp(x,lo,hi)
+{
+	if (x < lo) return lo;
+	if (x > hi) return hi;
+	return x;
+}
+
+function update()
+{
+	controls.update();
+	keyboard.update();         
+	if ( keyboard.pressed("left") ) 
+		angle += 0.05;               
+	if ( keyboard.pressed("right") )
+		angle -= 0.05;               
+	if ( keyboard.pressed("up") )  
+		speed += 2;        
+	if ( keyboard.pressed("down") )  
+		speed -= 2;  
+    // viscous drag
+	speed *= 0.995;		
+
+	speed = myclamp (speed, -120.0, 120.0);		
+}
+
+function render() {
+    renderer.render(scene, camera);
+}
+</script>
+
+</body>
+
+</html>

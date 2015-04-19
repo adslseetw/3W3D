@@ -11,10 +11,11 @@
 	text-align: center;
 	color: #FF8000
 }
+	strong {color: red}
 </style>
 </head>
 <body>
-<div id="info">hw4  <br/>按住方向鍵即可操控車輪!</div>
+<div id="info">hw4  <br/>按住方向鍵操控segway!<br> 按下<strong>Z</strong>切換視角</div>
 <script src="../js/three.min.js"></script>
 <script src="../js/OrbitControls.js"></script> 
 <script src="../js/KeyboardState.js"></script>
@@ -51,7 +52,13 @@ var keyboard = new KeyboardState();
 var angle = 0, speed = 5;
 var rt, alpha, h, ly;
 
-var driver;
+var power_L = new THREE.Vector3(0, 0, 10),power_R = new THREE.Vector3(0, 0, -10);;
+var point_L, point_R, car,car1;
+var driver,x_angle = 0, z_angle = 0;
+var slide_L = 0, slide_R = 0;
+var sceneHUD, cameraHUD;
+var leftBar, rightBar;
+var state = false;
 // state variables of toycar
 var pos = new THREE.Vector3(0,0,0);
 var angle = 0, speed = 0;
@@ -66,10 +73,10 @@ function init() {
     camera.position.z = 500;
     scene.add(camera);
 	
-	//駕駛員杯麵------------------------------------------------
+	//駕駛員------------------------------------------------
 	driver = new THREE.Object3D();
 	driver.rotation.y = Math.PI;
-	driver.position.set(12,120,-60);
+	driver.position.set(12,40,-60);
     scene.add(driver);
 	
 	//圖片-----------------------------------------------------------------------
@@ -84,7 +91,7 @@ function init() {
 	tire_bump.repeat.set( 8, 1 );//重複貼模組，使其較為美觀及真實
 	tire_map.wrapS = tire_map.wrapT = THREE.RepeatWrapping; 
 	tire_map.repeat.set( 8, 1 );
-
+	
 	//模組設定(大小、材質)-----------------------------------------------------------------------
     geometry = new THREE.CircleGeometry(56, 56);
     material = new THREE.MeshPhongMaterial({
@@ -144,19 +151,85 @@ function init() {
     mesh_tire_slide_out.rotation.y = Math.PI;
 
 	//將各個模組組合成一個物件
-	tire = new THREE.Object3D();
-    tire.add(mesh_tire_slide);
-	tire.add(mesh_tire_slide_out);
-    tire.add(mesh_tire_slide_2);
-	tire.add(mesh_tire_slide_2_out);
-    tire.add(mesh_tire);
-	tire.position.set(0,0,0);
-    scene.add(tire);
-    if (tire != undefined) { 
-        tire.scale.set (0.3,0.3,0.3);
-	}
+	tire_L = new THREE.Object3D();
+    tire_L.add(mesh_tire_slide);
+	tire_L.add(mesh_tire_slide_out);
+    tire_L.add(mesh_tire_slide_2);
+	tire_L.add(mesh_tire_slide_2_out);
+    tire_L.add(mesh_tire);
 	
-    // lamp parameters
+	clone_mesh = mesh_tire_slide.clone();
+	clone_mesh1 = mesh_tire_slide_out.clone();
+	clone_mesh2 = mesh_tire_slide_2.clone();
+	clone_mesh3 = mesh_tire_slide_2_out.clone();
+	clone_mesh4 = mesh_tire.clone();
+	
+	tire_R = new THREE.Object3D();
+	tire_R.add(clone_mesh);
+	tire_R.add(clone_mesh1);
+	tire_R.add(clone_mesh2);
+	tire_R.add(clone_mesh3);
+	tire_R.add(clone_mesh4);
+	
+    scene.add(tire_L);
+	scene.add(tire_R);
+	
+	tire_L.scale.set(0.7,0.7,0.8);
+	tire_R.scale.set(0.7,0.7,0.8);
+	tire_L.position.set (0,35,0);
+	tire_R.position.set (0,35,-120);
+	
+
+	car1 = new THREE.Object3D();
+	
+	car1.add(tire_L);
+	car1.add(tire_R);
+	
+	//------------------------------------------------
+	material1 = new THREE.MeshBasicMaterial({
+        map: steel_map,
+		color: 0x333333,
+        transparent: true,  // for cut-out texture
+        side: THREE.DoubleSide
+    });
+	material2 = new THREE.MeshBasicMaterial({
+        map: steel_map,
+        transparent: true,  // for cut-out texture8
+        side: THREE.DoubleSide
+    });
+	material3 = new THREE.MeshBasicMaterial({
+        map: steel_map,
+        transparent: true,  // for cut-out texture
+        side: THREE.DoubleSide
+    });
+	var bmesh = new THREE.Mesh(new THREE.BoxGeometry(105, 15,60),material1);
+    var bmesh1 = new THREE.Mesh(new THREE.CylinderGeometry(6, 6,150,50),material2);
+    var bmesh2 = new THREE.Mesh(new THREE.CylinderGeometry(5, 5,80,50),material3);
+    bmesh.rotation.y =Math.PI/2;	
+	bmesh.position.set(0,7.5+10,-60);
+	bmesh1.position.set(-28,90,-60);
+    bmesh1.rotation.z =Math.PI/26;
+	bmesh2.position.set(-36.7,167,-60);
+    bmesh2.rotation.x =Math.PI/2;
+	
+	steer = new THREE.Object3D();
+	
+	steer.add(bmesh1);
+	steer.add(bmesh2);
+	
+	if (car1 != undefined) { 
+        car1.scale.set (0.3,0.3,0.3);
+	}
+    car1.add(driver);
+	car1.add(bmesh);
+	car1.add(steer);
+	car1.position.set(0,0,18);
+	
+	car = new THREE.Object3D();
+	car.add(car1);
+	scene.add(car);
+	
+    // lamp parameters--------------------------------------
     ly = 300;
     rt = 40;
     h = 80;
@@ -182,7 +255,7 @@ function init() {
     spotLight.angle = alpha;
     spotLight.exponent = 50;
     scene.add(spotLight);
-    spotLight.target = tire; 
+    spotLight.target = car; 
 	
 	// ground
     var groundTexture = new THREE.ImageUtils.loadTexture( '../images/Hw2/texture_wood.png' );
@@ -211,45 +284,148 @@ function init() {
 	mesh_tire_slide_2_out.castShadow = true; mesh_tire_slide_2_out.receiveShadow = true;
 	mesh_tire.castShadow = true; mesh_tire.receiveShadow = true;
 
+	clone_mesh.castShadow = true; clone_mesh.receiveShadow = true;
+	clone_mesh1.castShadow = true; clone_mesh1.receiveShadow = true;
+	clone_mesh2.castShadow = true; clone_mesh2.receiveShadow = true;
+	clone_mesh3.castShadow = true; clone_mesh3.receiveShadow = true;
+	clone_mesh4.castShadow = true; clone_mesh4.receiveShadow = true;
+	
+	bmesh.castShadow = true; bmesh.receiveShadow = true;
+	bmesh1.castShadow = true; bmesh1.receiveShadow = true;
+	bmesh2.castShadow = true; bmesh2.receiveShadow = true;
+	
+	
     var amblight = new THREE.AmbientLight(0x555555); // soft white light
     scene.add(amblight);
 	
+	 //-----------------------------------------------------
+    point_L = new THREE.Mesh(new THREE.CircleGeometry(2),
+    new THREE.MeshBasicMaterial({
+        color: 0xff0000
+    }));
+    point_R = new THREE.Mesh(new THREE.CircleGeometry(2),
+    new THREE.MeshBasicMaterial({
+        color: 0x0000ff
+    }));
+    pointC = new THREE.Mesh(new THREE.CircleGeometry(2),
+    new THREE.MeshBasicMaterial({
+        color: 0xffff00
+    }));
+    point_L.position.copy(power_L);
+    point_R.position.copy(power_R);
+	point_L.rotation.x = Math.PI/2;
+    point_R.rotation.x = Math.PI/2;
+    pointC.rotation.x = Math.PI/2;
+    scene.add(point_L);
+    scene.add(point_R);
+	
+	var jsonLoader = new THREE.JSONLoader();
+    jsonLoader.load("../models/android.json", addModelToScene);
+
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x111111);
+	renderer.autoClear = false;
 	renderer.shadowMapEnabled = true;
 	renderer.shadowMapType = THREE.PCFShadowMap;
 	
     controls = new THREE.OrbitControls(camera, renderer.domElement);
-
     document.body.appendChild(renderer.domElement);
+}
+
+function addModelToScene(geometry, materials) {
+    //var material = new THREE.MeshFaceMaterial(materials);
+    var material = new THREE.MeshFaceMaterial (materials);
+    var jsonModel = new THREE.Mesh(geometry, material);
+    jsonModel.scale.set(10, 20, 10);
+    jsonModel.rotation.y = Math.PI/2; // default: back face +z
+	jsonModel.castShadow = true; jsonModel.receiveShadow = true;
+    driver.add(jsonModel);
 }
 
 function animate()
 {
-	var dt = clock.getDelta();
+	keyboard.update();
+	controls.update();
+	dt = 0.01;
+    update(0.01);
 	
-	var dir = new THREE.Vector3(1,0,0);
-	dir.multiplyScalar (dt*speed);
-	dir.applyAxisAngle (new THREE.Vector3(0,1,0), angle);
-	pos.add (dir); 	//pos = pos + dir;
-	tire.rotation.z += -speed*dt/10;
-	if (tire != undefined) { 
-		tire.position.set (pos.x, pos.y+15, pos.z);
-		tire.rotation.y = angle;
-	}
-	 // rotating lamp
+    if (keyboard.pressed("left")) {slide_R += 3; x_angle += 0.005; }
+	if (keyboard.pressed("up")) {slide_R += 3; slide_L+=3;  z_angle -= 0.01; }
+    if (keyboard.pressed("down")) {slide_L -= 3; slide_R-=3;   z_angle += 0.01;}
+    if (keyboard.pressed("right")) {slide_L += 3;  x_angle -= 0.005;}
+    if (keyboard.pressed("space")) { // pause
+        z_angle = x_angle = 0;
+		slide_L = 0;
+		slide_R = 0;
+    }
+    x_angle = myclamp(x_angle,-180, 180);
+    z_angle = myclamp(z_angle,-180, 180);
+	
+    driver.rotation.x = x_angle;
+	driver.rotation.z = z_angle;
+	
+	steer.rotation.x = x_angle;
+	steer.rotation.z = -z_angle;
+
+	slide_L = myclamp(slide_L, -180, 180);
+    slide_R = myclamp(slide_R, -180, 180);
+	slide_L *= 0.975;
+	slide_R *= 0.975;
+	x_angle *= 0.975;
+	z_angle *= 0.975;
+	
+	var forward = -z_angle * 10;
+    var small = forward * (1 - Math.abs(x_angle) / 0.1 * 1.8);
+    
+	leftBar.scale.copy(new THREE.Vector3(1, slide_L/80, 1));
+    rightBar.scale.copy(new THREE.Vector3(1, slide_R/80, 1));
+	
+    var tmp = new THREE.Vector3();
+    tmp.copy(power_L);
+    tmp.add(power_R).multiplyScalar(0.5); // (power_L+power_R)/2
+    car.position.copy(tmp);
+    tmp.copy(power_L);
+    tmp.sub(power_R); // power_L - power_R;
+    var angle = Math.atan2(tmp.z, tmp.x) - Math.PI / 2;
+    car.setRotationFromAxisAngle(new THREE.Vector3(0, -1, 0), angle);
+ 
+	tire_L.rotation.z += slide_L*dt/10;
+	tire_R.rotation.z += slide_R*dt/10;
+	
+   	 // rotating lamp
     var axis = new THREE.Vector3();
-    var d = new THREE.Vector3();
+    var d = new THREE.Vector3(0, -1, 0);
     var p = new THREE.Vector3();
-    p = tire.position.clone().sub(new THREE.Vector3(0, ly, 0)).normalize();
-    d = new THREE.Vector3(0, -1, 0);
+    p = car.position.clone().sub(new THREE.Vector3(0, ly, 0)).normalize();
     axis.crossVectors(d, p).normalize();
     var rotangle = Math.acos(d.dot(p));
 	lamp.setRotationFromAxisAngle(axis, rotangle);
-	requestAnimationFrame ( animate ); 
-	update();
-	render(); 
+	requestAnimationFrame ( animate );  
+	
+	
+	if(state === false){
+		camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000000);
+		camera.position.y = 300;
+		camera.position.z= 500;
+		camera.lookAt(new THREE.Vector3(0, 0, 0));
+    }
+   else if(state ===true){
+		camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 10000000);
+		var relativeCameraOffset = new THREE.Vector3 (200,150,0);
+		var cameraOffset = relativeCameraOffset.applyMatrix4( car.matrixWorld );
+
+		camera.position.x = cameraOffset.x;
+		camera.position.y = cameraOffset.y;
+		camera.position.z = cameraOffset.z;
+		camera.lookAt( car.position );
+    }
+    render();
+
+}
+
+function toggle(){
+	state = !state;
 }
 
 function myclamp(x,lo,hi)
@@ -259,30 +435,53 @@ function myclamp(x,lo,hi)
 	return x;
 }
 
-function update()
+function update(dt)
 {
-	controls.update();
-	keyboard.update();         
-	if ( keyboard.pressed("left") ) 
-		angle += 0.05;               
-	if ( keyboard.pressed("right") )
-		angle -= 0.05;               
-	if ( keyboard.pressed("up") )  
-		speed += 2;        
-	if ( keyboard.pressed("down") )  
-		speed -= 2;  
-    // viscous drag
-	speed *= 0.995;		
+    
+	if ( keyboard.down("Z"))  // yes, must use UPPER CASE
+		toggle();     
+	
+    var center = new THREE.Vector3();
+    var tmp = new THREE.Vector3();
+    var l = tmp.subVectors(power_L, power_R).length();
+    var k = l * slide_L / (slide_R - slide_L);
+    var omega = (slide_R - slide_L) / l;
 
-	speed = myclamp (speed, -120.0, 120.0);		
+    //if (omega === 0.0) {
+    if (Math.abs(slide_L-slide_R) < 1e-5) {    // this gives better result (no jerk)
+    tmp.subVectors(power_L, power_R).normalize().cross(new THREE.Vector3(0, 1, 0)).multiplyScalar(slide_L * dt);
+        power_L.add(tmp);
+        power_R.add(tmp);
+        point_L.position.copy(power_L);
+        point_R.position.copy(power_R);
+		
+
+        return; // do a pure translation then return
+    }
+
+    tmp.subVectors(power_L, power_R).normalize().multiplyScalar(k);
+    center.copy(tmp.add(power_L));
+
+    tmp.subVectors(power_L, center).applyAxisAngle(new THREE.Vector3(0, 1, 0), omega * dt).add(center);
+    power_L.copy(tmp);
+    tmp.subVectors(power_R, center).applyAxisAngle(new THREE.Vector3(0, 1, 0), omega * dt).add(center);
+    power_R.copy(tmp);
+    
+    point_L.position.copy(power_L);
+    point_R.position.copy(power_R);
+    car.position.copy (center);
+	//////////////////////////////////////////////////////////////////////////////////////
+       
+
 }
 
 function render() {
+    renderer.clear();
     renderer.render(scene, camera);
+    renderer.render(sceneHUD, cameraHUD); 
 }
 
-var sceneHUD, cameraHUD;
-var leftBar, rightBar;
+
 function initHUD() {
 	sceneHUD = new THREE.Scene();
     cameraHUD = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);

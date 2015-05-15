@@ -401,9 +401,11 @@ function tst(which) {
 
 function onWindowResize() {
 
-    camera.aspect = window.innerWidth*0.6 / window.innerHeight;
+    width = theCanvasFrame.clientWidth;
+    heigh = theCanvasFrame.clientHeight;
+    camera.aspect = width / heigh;
     camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth*0.6 , window.innerHeight);
+    renderer.setSize(width , heigh);
 }
 
 $("#setObjectBtn").click(function () {

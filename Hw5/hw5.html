@@ -31,7 +31,7 @@
 }
 body {
      position: fixed;
-     overflow-y:scroll
+	 overflow:hidden;
 }
 
 	strong {color: red}
@@ -45,17 +45,17 @@ body {
 </div>
 
 <div style="margin: 10px;  height:px; float:left">
-<button id="setObjectBtn" style="margin:10px;">Save</button>
-<button id="getObjectBtn"style="margin:10px">Load</button>
-<button id="clear"style="margin:10px">Clear Local Storage</button>
-<button id="refresh"style="margin:10px">Reload Page</button>
+<button id="saveBtn" style="margin:10px;">Save</button>
+<button id="loadBtn"style="margin:10px">Load</button>
+<button id="clearBtn"style="margin:10px">Clear Local Storage</button>
+<button id="refreshBtn"style="margin:10px">Reload Page</button>
 </div>
 
-<img src="../images/Hw5/1.jpg" class="flc" onclick="javascript:tst(1);" />
-<img src="../images/Hw5/2.jpg" class="flc" onclick="javascript:tst(2);" />
-<img src="../images/Hw5/3.jpg" class="flc" onclick="javascript:tst(3);" />
-<img src="../images/Hw5/4.jpg" class="flc" onclick="javascript:tst(4);" />
-<img src="../images/Hw5/5.jpg" class="flc" onclick="javascript:tst(5);" />
+<img src="../images/Hw5/1.jpg" class="flc" onclick="javascript:putPicture(1);" />
+<img src="../images/Hw5/2.jpg" class="flc" onclick="javascript:putPicture(2);" />
+<img src="../images/Hw5/3.jpg" class="flc" onclick="javascript:putPicture(3);" />
+<img src="../images/Hw5/4.jpg" class="flc" onclick="javascript:putPicture(4);" />
+<img src="../images/Hw5/5.jpg" class="flc" onclick="javascript:putPicture(5);" />
 <div style="clear:both"></div>
 
  <div id="info">hw5  <br/>點選右側圖片後點選灰色區塊即可掛上照片</div> 
@@ -148,10 +148,7 @@ function init() {
     groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
-	
 
-	
-	
 	//-----------------------------------------------------------------------------
 	var wall = new THREE.Object3D();
     geometry = new THREE.BoxGeometry(100, 100,5);
@@ -273,7 +270,7 @@ function init() {
         polygonOffsetFactor: -2.0,
     }));
 	
-	 var amblight = new THREE.AmbientLight(0x888888); // soft white light
+	var amblight = new THREE.AmbientLight(0x888888); // soft white light
     scene.add(amblight);
 	
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -358,7 +355,7 @@ function onDocumentMouseDown(event) {
 function onDocumentMouseMove(event) {
     event.preventDefault();
     mouse.x = (event.clientX / width) * 2 - 1;
-    mouse.y = -((event.clientY) / heigh) * 2 + 1;
+    mouse.y = -((event.clientY-15) / heigh) * 2 + 1;
 
     //
     var vector = new THREE.Vector3(mouse.x, mouse.y, 1).unproject(camera);
@@ -376,7 +373,7 @@ function onDocumentMouseMove(event) {
 var pmaterial1;
 var tmp;
 
-function tst(which) {
+function putPicture(which) {
 
     if (which === 1) {
         pic = picture;
@@ -408,55 +405,55 @@ function onWindowResize() {
     renderer.setSize(width , heigh);
 }
 
-$("#setObjectBtn").click(function () {
-    var obj = {};
+$("#saveBtn").click(function () {
+    var obj, obj1, obj2,obj3,obj4;
     obj = picture;    
     var objStr = JSON.stringify(obj);
-    localStorage.setItem("myObj", objStr);
-	localStorage.setItem("rot", picture.rotation.y);
-    var obj1 = {};
+    localStorage.setItem("myPicture1", objStr);
+	localStorage.setItem("rotation1", picture.rotation.y);
     obj1 = picture1;    
     var objStr1 = JSON.stringify(obj1);
-    localStorage.setItem("myObj1", objStr1);
-    localStorage.setItem("rot1", picture1.rotation.y);
-    var obj2 = {};
+    localStorage.setItem("myPicture2", objStr1);
+    localStorage.setItem("rotation2", picture1.rotation.y);
     obj2 = picture2;    
     var objStr2 = JSON.stringify(obj2);
-    localStorage.setItem("myObj2", objStr2);
-    localStorage.setItem("rot2", picture2.rotation.y);
-    var obj3 = {};
+    localStorage.setItem("myPicture3", objStr2);
+    localStorage.setItem("rotation3", picture2.rotation.y);
     obj3 = picture3;    
     var objStr3 = JSON.stringify(obj3);
-    localStorage.setItem("myObj3", objStr3);
-    localStorage.setItem("rot3", picture3.rotation.y);
-	var obj4 = {};
+    localStorage.setItem("myPicture4", objStr3);
+    localStorage.setItem("rotation4", picture3.rotation.y);
     obj4 = picture4;    
     var objStr4 = JSON.stringify(obj4);
-    localStorage.setItem("myObj4", objStr4);
-    localStorage.setItem("rot4", picture4.rotation.y);
+    localStorage.setItem("myPicture5", objStr4);
+    localStorage.setItem("rotation5", picture4.rotation.y);
 });
-$("#getObjectBtn").click(function () {
-    var objStr = localStorage.getItem("myObj");
-    var obj = null;
-    var objStr1 = localStorage.getItem("myObj1");
-    var obj1 = null;
-    var objStr2 = localStorage.getItem("myObj2");
-    var obj2 = null;
-    var objStr3 = localStorage.getItem("myObj3");
-    var obj3 = null;
-	var objStr4 = localStorage.getItem("myObj4");
-    var obj4 = null;
-	var r = localStorage.getItem("rot");
-	var r1 = localStorage.getItem("rot1");
-	var r2 = localStorage.getItem("rot2");
-    var r3 = localStorage.getItem("rot3");
-	var r4 = localStorage.getItem("rot4");
+
+$("#loadBtn").click(function () {
+	var objStr,objStr1,objStr2,objStr3,objStr4; 
+	var obj,obj1,obj2,obj3,obj4;
+	var rotation1,rotation2,rotation3,rotation4,rotation5;
+	
+    objStr = localStorage.getItem("myPicture1");
+    objStr1 = localStorage.getItem("myPicture2");
+    objStr2 = localStorage.getItem("myPicture3");
+    objStr3 = localStorage.getItem("myPicture4");
+	objStr4 = localStorage.getItem("myPicture5");
+
+	obj = obj1 = obj2 = obj3 = obj4 = null;
+
+	rotation1 = localStorage.getItem("rotation1");
+	rotation2 = localStorage.getItem("rotation2");
+	rotation3 = localStorage.getItem("rotation3");
+    rotation4 = localStorage.getItem("rotation4");
+	rotation5 = localStorage.getItem("rotation5");
+	
     try {
-     obj = JSON.parse(objStr); { picture.position.set(obj.object.matrix[12],obj.object.matrix[13],obj.object.matrix[14]); picture.rotation.y=r;}
-     obj1 = JSON.parse(objStr1);{ picture1.position.set(obj1.object.matrix[12],obj1.object.matrix[13],obj1.object.matrix[14]);picture1.rotation.y=r1;}
-     obj2 = JSON.parse(objStr2);{ picture2.position.set(obj2.object.matrix[12],obj2.object.matrix[13],obj2.object.matrix[14]);picture2.rotation.y=r2;}
-     obj3 = JSON.parse(objStr3);{ picture3.position.set(obj3.object.matrix[12],obj3.object.matrix[13],obj3.object.matrix[14]);picture3.rotation.y=r3;}
-	 obj4 = JSON.parse(objStr4);{ picture4.position.set(obj4.object.matrix[12],obj4.object.matrix[13],obj4.object.matrix[14]);picture4.rotation.y=r4;}
+	  obj = JSON.parse(objStr); { picture.position.set(obj.object.matrix[12],obj.object.matrix[13],obj.object.matrix[14]); picture.rotation.y=rotation1;}
+	  obj1 = JSON.parse(objStr1);{ picture1.position.set(obj1.object.matrix[12],obj1.object.matrix[13],obj1.object.matrix[14]);picture1.rotation.y=rotation2;}
+	  obj2 = JSON.parse(objStr2);{ picture2.position.set(obj2.object.matrix[12],obj2.object.matrix[13],obj2.object.matrix[14]);picture2.rotation.y=rotation3;}
+	  obj3 = JSON.parse(objStr3);{ picture3.position.set(obj3.object.matrix[12],obj3.object.matrix[13],obj3.object.matrix[14]);picture3.rotation.y=rotation4;}
+	  obj4 = JSON.parse(objStr4);{ picture4.position.set(obj4.object.matrix[12],obj4.object.matrix[13],obj4.object.matrix[14]);picture4.rotation.y=rotation5;}
       if(picture.position.x !=0 || picture.position.z!=0 || picture.position.z!=0)
           scene.add(picture);
       if(picture1.position.x !=0 || picture1.position.z!=0 || picture1.position.z!=0)
@@ -474,12 +471,12 @@ $("#getObjectBtn").click(function () {
     }
 });
 
-$("#clear").click(function(){
-    //clear all records
-    localStorage.clear();
+$("#clearBtn").click(function(){
+    //clearBtn all records
+    localStorage.clearBtn();
 });
 
-$("#refresh").click(function(){
+$("#refreshBtn").click(function(){
     window.location.reload();
 });
 </script>

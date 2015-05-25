@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#info {
+	position: absolute;
+	top: 0px; 
+	width: 100%;
+	font-family: Monospace;
+	font-size: 20px;
+	padding: 5px;
+	text-align: center;
+	color: #FF8000
+}
+
+body {
+     position: fixed;
+	 overflow:hidden;
+}
+
+	strong {color: red}
+</style>
+</head>
+<body>
+
+<div id="container"></div>
+<div id="info">hw6 </div>
+<script id="myVertexShader" type="x-shader/x-vertex">
+	varying vec2 vUv;
+	void main() {
+		gl_Position = projectionMatrix* modelViewMatrix * vec4( position, 1.0);
+		vUv = uv;
+	}
+</script>
+<script id="myFragmentShader" type="x-shader/x-fragment">
+	uniform sampler2D texture;
+	varying vec2 vUv;
+	
+	void main() {
+		vec4 color = texture2D (texture,vUv);
+        if (color.b > 0.85) 
+            discard;
+        else 
+            gl_FragColor = vec4(.2, .2, .2, 0.) + color;
+	}
+</script>
+
+<script type="x-shader/x-fragment" id="fragmentShaderDepth">
+    uniform sampler2D texture;
+    varying vec2 vUv;
+
+    vec4 pack_depth(const in float depth) {
+        const vec4 bit_shift = vec4(256.0 * 256.0 * 256.0, 256.0 * 256.0, 256.0, 1.0);
+        const vec4 bit_mask = vec4(0.0, 1.0 / 256.0, 1.0 / 256.0, 1.0 / 256.0);
+        vec4 res = fract(depth * bit_shift);
+        res -= res.xxyz * bit_mask;
+        return res;
+    }
+    void main() {
+        vec4 pixel = texture2D(texture, vUv);
+        if (pixel.b > 0.85){
+			discard;
+		}
+        gl_FragData[0] = pack_depth(gl_FragCoord.z);
+    }
+ 
+</script>
+
+<script src="../js/three.min.js"></script>
+<script src="../js/OrbitControls.js"></script> 
+<script src="../js/KeyboardState.js"></script>
+<script src="../js/jquery-1.11.3.min.js"></script>
+<script src="../js/Stats.js"></script>
+
+<script>
+var camera, scene, renderer, geometry, material, spotLight, controls;
+var container, sceneRTT, rtTexture;
+var stats, quadij;
+var mesh;
+var array = new Array();
+var clock = new THREE.Clock();
+init();
+animate();
+
+function init() {
+    scene = new THREE.Scene();
+	sceneRTT = new THREE.Scene();
+
+	// spotLight
+	spotLight = new THREE.SpotLight(0xffffff, 1);
+    spotLight.position.set(0, 300, 300);
+    spotLight.angle = Math.PI / 4;
+    spotLight.castShadow = true;
+    spotLight.shadowMapWidth = 1024;
+    spotLight.shadowMapHeight = 1024;
+    spotLight.shadowCameraNear = 6;
+    spotLight.shadowCameraFar = 3500;
+    spotLight.shadowCameraFov = spotLight.angle / Math.PI * 180;
+    spotLight.exponent = 30;
+    scene.add(spotLight);
+
+	// ground
+    var groundTexture = new THREE.ImageUtils.loadTexture( '../images/Hw2/texture_wood.png' );
+	var groundMaterial = new THREE.MeshLambertMaterial( { map: groundTexture, side: THREE.DoubleSide } );
+    var ground = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000, 50, 50),
+    groundMaterial);
+    ground.rotation.x = -Math.PI / 2;
+	ground.receiveShadow = true;
+    scene.add(ground);
+	
+	THREE.ImageUtils.crossOrigin = '';
+	var colormap = THREE.ImageUtils.loadTexture('../images/Hw6/hobgoblin.png');
+
+    rtTexture = new THREE.WebGLRenderTarget(
+		window.innerWidth, window.innerHeight, {
+			minFilter: THREE.LinearFilter,
+			magFilter: THREE.NearestFilter,
+			format: THREE.RGBFormat
+    });
+
+	var loader = new THREE.JSONLoader();
+	loader.load('../models/tris.js', function (geometry, mat) {
+		geometry.computeMorphNormals();
+		var mat = new THREE.MeshBasicMaterial({
+			map: colormap,
+			morphTargets: true, 
+			morphNormals: true
+		});
+
+		mesh = new THREE.MorphAnimMesh(geometry, mat);
+		mesh.parseAnimations();
+
+		mesh.playAnimation('run', 10);
+        mesh.scale.set(4, 2, 3.5);
+	    angle = 0;
+    if (mesh !== undefined){
+		mesh.rotation.y = angle; 
+	}
+		sceneRTT.add(mesh);
+	});
+
+    var plane = new THREE.PlaneBufferGeometry(75, 75);
+    rttmaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            texture: {
+                type: "t",
+                value: rtTexture
+            }
+        },
+		polygonOffset: true, polygonOffsetFactor: 1.0, polygonOffsetUnits: 4.0, // push behind
+		side: THREE.DoubleSide,
+        vertexShader: document.getElementById('myVertexShader').textContent,
+        fragmentShader: document.getElementById('myFragmentShader').textContent
+    });
+	
+    quad = new THREE.Mesh(plane,rttmaterial);
+	var container = document.getElementById( 'container' );
+			
+	stats = new Stats();
+	stats.domElement.style.position = 'absolute';
+	stats.domElement.style.top = '0px';
+	stats.domElement.style.zIndex = 100;
+	container.appendChild( stats.domElement );
+  
+    renderer = new THREE.WebGLRenderer({
+        antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x888888);
+   
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.y = 30;
+    camera.position.z = 200;
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+     
+    renderer.shadowMapEnabled = true;
+    renderer.shadowMapType = THREE.PCFShadowMap;
+    quad.customDepthMaterial = new THREE.ShaderMaterial({
+        side: THREE.DoubleSide,
+        uniforms: {
+            texture: {
+                type: 't',
+                value: rtTexture
+            }
+        },
+        vertexShader: document.getElementById('myVertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShaderDepth').textContent
+    });
+	var n=0;
+	for (var i = 0; i <= 8; i++)
+		for (var j = 0; j <= 8; j++) {
+			quadij = quad.clone();
+			quadij.position.set(-200+50 * i, 15, -200+50 * j);
+			array[n]=quadij;
+			n=n+1;
+			quadij.castShadow = true;
+			quadij.customDepthMaterial = new THREE.ShaderMaterial({
+			side: THREE.DoubleSide,
+			uniforms: {
+				texture: {
+					type: 't',
+					value: rtTexture
+				}
+			},
+			vertexShader: document.getElementById('myVertexShader').textContent,
+			fragmentShader: document.getElementById('fragmentShaderDepth').textContent
+		});
+		scene.add(quadij);
+    }
+	
+
+
+	
+    var ambientLight = new THREE.AmbientLight(0x555555);
+    scene.add(ambientLight);
+    document.body.appendChild(renderer.domElement);
+}
+
+function animate() {
+	stats.update();
+    controls.update();
+	
+    for(n=0; n < array.length; n++){
+	     rotateBillboard(array[n]);
+	}
+	rotateBillboard(quad)                 
+
+    requestAnimationFrame(animate);
+    render();
+}
+
+function render() {
+    var delta = clock.getDelta();
+    // render teapot to texture
+    renderer.setClearColor(0x0000ff);
+    renderer.render(sceneRTT, camera, rtTexture, true);
+     
+    // render texture to screne
+    renderer.setClearColor(0x888888);
+    renderer.render(scene, camera);
+	
+	if (mesh != undefined) {
+		mesh.updateAnimation(delta * 700);   // in msecs
+	}
+}
+function rotateBillboard (mesh)
+{
+    var b = mesh.position.clone();  // billboard location
+    var rotaxis = new THREE.Vector3();
+    var v, yhat, n;
+    
+    v = camera.position.clone(); // clone the camera position
+    yhat = new THREE.Vector3(0, 1, 0); // up
+    n = new THREE.Vector3(0, 0, 1); // billboard normal
+
+    v.subVectors(v, b); // v-b
+    v.sub(yhat.clone().multiplyScalar(v.dot(yhat)));
+    v.normalize(); // pxz
+
+    rotangle = Math.acos(v.dot(n));
+    rotaxis.crossVectors(n, v);
+    if (rotaxis.dot(yhat) < 0) rotangle *= -1;
+
+    mesh.rotation.y = rotangle;
+}
+</script>
+
+</body>
+
+</html>

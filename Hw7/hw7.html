@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+#canvasFrame {
+    width:60vw;
+	height:10vw;
+    float:left;
+    background-color:white;
+    margin-top: 0px;
+	padding-bottom:100%;
+}
+
+
+body {
+     position: fixed;
+	 overflow:hidden;
+}
+
+	strong {color: red}
+</style>
+</head>
+
+<div id="canvasFrame" align="center">
+	剩餘時間: <label id="counter" align="center"></label>&nbsp&nbsp&nbsp&nbsp
+	生命值: <label id="life"  align="center" ></label>&nbsp&nbsp&nbsp&nbsp
+	分數: <label id="score"  align="center" ></label>&nbsp&nbsp&nbsp&nbsp
+	<canvas id="canvas"></canvas>
+</div>
+
+<div id="init" style="margin: 10px;   float:left">
+	
+	<br><font face="verdana" size = "12">玩家名稱:
+		<input id="user" type="text" value="" >
+	</br>
+	<button id="login">Login and Play</button>
+	<button id="clear">Clear</button>
+	<button id="reload">Reload</button>
+	<button id="printLog">Print log</button>
+		<p id='bestScore'></p>
+	<p id='bestScore'></p>
+
+	<font face="verdana" size = "4"  color="red">說明:輸入玩家名稱後按下'login and play'開始進行遊戲<br>
+	<font face="verdana" size = "4"  color="red">時間到而生命值沒有歸零即獲勝<br>
+	<font face="verdana" size = "4"  color="red">獲勝時每一個在場上的球額外+500分<br>
+
+	
+</div>
+
+<audio id="winSound"  style="display:none">
+<source src="../sounds/gameover.wav" type='audio/wav'>
+</audio>
+<audio id="loseSound"  style="display:none">
+<source src="../sounds/loseSound.mp3" type='audio/mp3'>
+</audio>
+<audio id="pongsound"  style="display:none">
+<source src="../sounds/pong.wav" type='audio/wav'>
+</audio>
+<audio id="outSound"  style="display:none">
+<source src="../sounds/out.mp3" type='audio/mp3'>
+</audio>
+
+
+
+<script src="../js/three.min.js"></script>
+<script src="../js/OrbitControls.js"></script> 
+<script src="../js/KeyboardState.js"></script>
+<script src="../js/jquery-1.11.3.min.js"></script>
+<script src="../js/Stats.js"></script>
+<script src='../js/threex.text.js'></script>
+<script src="../js/fonts/droid/droid_serif_bold.typeface.js"></script>
+
+<script id="vertexShader" type="x-shader/x-vertex">
+    varying vec2 vUv;
+    
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+</script>
+
+
+<script id="fragmentShader" type="x-shader/x-fragment">
+    uniform float time;
+    varying vec2 vUv;
+    void main(void) {
+        // Divide the coordinates into a grid of squares
+		vec2 v = vUv/1.0; //gl_FragCoord.xy / 20.0;
+		vec2 p =  v * 8.0 - vec2(20.0);
+		vec2 i = p;
+		float c = 1.0;
+		float inten = .05;
+
+		for (int n = 0; n < 2; n++) 
+		{
+			float t = time * (1.0 - (3.0 / float(n+1)));
+			
+			i = p + vec2(cos(t - i.x) + sin(t + i.y),
+						 sin(t - i.y) + cos(t + i.x));
+						 
+			c += 1.0/length(vec2(p.x / (sin(i.x+t)/inten),
+								 p.y / (cos(i.y+t)/inten)));
+		}
+
+		c /= float(2);
+		c = 1.5 - sqrt(c);
+
+		vec4 texColor = vec4(0.0, 0.0117647, 0.01568627, 1.0);
+		
+		texColor.rgb *= pow((1.0 / (1.0 - (c + 0.0))), 3.0);
+		
+		gl_FragColor = texColor;
+
+   }
+</script>
+<script>
+
+
+var text = "";
+var camera, scene, renderer, geometry, material, mesh, controls, mouse = new THREE.Vector2();
+var user_name, counterid, life, score, counter, userlife = 10, scores = 0, counternumber = 30, result = true , puck_counter = 0;
+var theCanvasFrame,theCanvas ;
+var clock = new THREE.Clock();
+var raycaster;
+var pucks = [], pickables = [], records = [];
+var sceneBack, cameraBack;
+var meshMaterial;
+var wall_displacement=0;
+
+var Puck = function () {
+    this.vel = new THREE.Vector3();
+    this.pos = new THREE.Vector3();
+    this.pColor = new THREE.Color();
+    this.mesh = new THREE.Mesh();
+    this.pointLight = new THREE.PointLight(0xffffff, 0.3);
+    this.life = true
+};
+
+Puck.prototype.update = function (dt) {
+    if(this.life == false){
+		this.mesh.visible = false; 
+		this.pos.add(this.vel.clone().multiplyScalar(dt));
+		this.mesh.position.copy(this.pos);
+		this.pointLight.position.set(this.pos.x, 10, this.pos.z);
+		this.pointLight.color = this.pColor;
+		this.mesh.material.color = this.pColor;
+		this.pointLight.intensity = 0;
+    }else if(this.life ==true){
+		this.pos.add(this.vel.clone().multiplyScalar(dt));
+		this.mesh.position.copy(this.pos);
+		this.pointLight.position.set(this.pos.x, 10, this.pos.z);
+		this.pointLight.color = this.pColor;
+		this.mesh.material.color = this.pColor;
+    }
+};
+
+Puck.prototype.collision = function () {
+    // collision
+    if (this.pos.x > 100) {
+		if(this.mesh.visible){
+			pongsound.play();
+			scores+=10;
+		}
+        this.pos.x = 100;
+        this.vel.set(-this.vel.x, 0, this.vel.z);
+        this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2  + 0.5);
+
+    } else if (this.pos.x < -100) {
+		if(this.mesh.visible){
+			pongsound.play();
+			scores+=10;
+		}
+        this.pos.x = -100;
+        this.vel.set(-this.vel.x, 0, this.vel.z);
+        this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+
+    }
+    if ((this.pos.z > 100 && this.pos.x > 30-wall_displacement) || (this.pos.z > 100 && this.pos.x < -30+wall_displacement)) {
+		if(this.mesh.visible){
+			pongsound.play();
+			scores+=10;
+		}
+        this.pos.z = 100;
+        this.vel.set(this.vel.x, 0, -this.vel.z);
+        this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+    } else if ((this.pos.z < -100 && this.pos.x > 30-wall_displacement) || (this.pos.z <- 100 && this.pos.x < -30+wall_displacement)) {
+		if(this.mesh.visible){
+			pongsound.play();
+			scores+=10;
+		}
+        this.pos.z = -100;
+        this.vel.set(this.vel.x, 0, -this.vel.z);
+        this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);	
+
+
+    } else if(Math.abs((this.pos.x - paddle.position.x)) < 45 && Math.abs((this.pos.z - paddle.position.z)) < 3){  
+		 if(this.mesh.visible)  {
+			pongsound.play();
+		    scores+=10;
+		 }
+		 this.pos.z = 100;
+		 this.vel.set(this.vel.x, 0, -this.vel.z);
+		 this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+
+	 }else if(Math.abs((this.pos.x - paddle1.position.x)) < 45 && Math.abs((this.pos.z - paddle1.position.z)) < 3){  
+		 if(this.mesh.visible)  {
+			pongsound.play();
+			scores+=10;
+		 }	
+		 this.pos.z = -100;
+		 this.vel.set(this.vel.x, 0, -this.vel.z);
+		 this.pColor.setHSL(Math.random(), Math.random(), Math.random() / 2 + 0.5);
+
+	 }
+			
+    if ((this.pos.z > 105 && this.pos.x < 45 && this.mesh.visible) || (this.pos.z > 105 && this.pos.x > -45 && this.mesh.visible)) {
+        outSound.play();
+		this.life = false;
+		userlife--;	
+    } else if ((this.pos.z < -105 && this.pos.x < 45 && this.mesh.visible) || (this.pos.z < -105 && this.pos.x > -45 && this.mesh.visible)) {
+          outSound.play();
+		  this.life = false;
+		  userlife--;	
+    }
+   
+    
+}
+
+function newPuck() {
+    var puck = new Puck();
+    puck.pos = new THREE.Vector3(0, 1, 0);
+    puck.vel = new THREE.Vector3(100+(160 * (Math.random() * 2 - 1)), 0, 100+(170 * (Math.random() * 2 - 1)));
+    puck.pColor = new THREE.Color(Math.random() * 2 - 1,Math.random() * 2 - 1,Math.random() * 2 - 1);
+    puck.mesh = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 2, 20),
+    new THREE.MeshBasicMaterial());
+    puck.mesh.material.color = puck.pColor;
+    scene.add(puck.mesh);
+    scene.add(puck.pointLight);
+    return puck;
+}
+
+init();
+
+function init() {
+	
+	//音效檔載入
+	winSound = document.getElementById ('winSound');
+	loseSound = document.getElementById ('loseSound');
+	pongSound = document.getElementById ('pongsound');
+	pongsound = document.getElementById ('pongsound');
+	outSound = document.getElementById ('outSound');
+	
+	//畫布載入
+    theCanvas = document.getElementById("canvas");
+    theCanvasFrame = document.getElementById("canvasFrame");
+
+    renderer = new THREE.WebGLRenderer({
+        canvas: theCanvas,
+        antialias: true
+    });
+   
+   
+    //ShaderMaterial
+	meshMaterial = new THREE.ShaderMaterial({
+	    transparent: true,
+        opacity: 1,
+        uniforms: {
+            time: {
+                type: 'f',
+                value: 1.0
+            }
+        },
+        vertexShader: document.getElementById('vertexShader').textContent,
+        fragmentShader: document.getElementById('fragmentShader').textContent
+    });
+
+	//背景-ShaderMaterial
+    sceneBack = new THREE.Scene();
+    cameraBack = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);
+    cameraBack.position.z = 5;
+    cameraBack.lookAt(new THREE.Vector3(0, 0, 0));
+
+	//用於放置ShaderMaterial 當作背景
+    var back = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
+		meshMaterial
+    );
+	renderer.autoClear = false;
+    back.material.depthTest = false;
+    back.material.depthWrite = false;
+    sceneBack.add(back);
+	
+    ww = theCanvasFrame.clientWidth;
+    hh = theCanvasFrame.clientHeight;
+    renderer.setSize(ww, hh);
+    renderer.setClearColor(0x222222);	
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(60, ww / hh, 1, 1000);
+    camera.position.z = 500;
+    camera.position.y = 500;
+
+	camera.lookAt(new THREE.Vector3( 0, 0, 200 ));
+    scene.add(camera);
+
+    geometry = new THREE.BoxGeometry(220, 30, 10); //上下
+	geometry1 = new THREE.BoxGeometry(80, 30, 10); //左右
+    geometry2 = new THREE.BoxGeometry(60,30,10);  //球拍
+    material = new THREE.MeshBasicMaterial({ //牆壁
+        transparent: true,
+        color: 0xffffff,
+        opacity: 0.4
+    });
+	
+    material1 = new THREE.MeshBasicMaterial({ //球拍
+        color: 0xcccccc,
+        opacity: 0.4
+    });
+    paddle = new THREE.Mesh(geometry2, material1);
+    paddle1 = new THREE.Mesh(geometry2, material1);
+    paddle.position.set(0,15,105);
+    paddle1.position.set(0,15,-105);
+    scene.add(paddle);
+    scene.add(paddle1);
+	
+    mesh = new THREE.Mesh(geometry1, material);
+    mesh.position.set(-70-wall_displacement, 15, 105);
+    mesha = new THREE.Mesh(geometry1, material);
+    mesha.position.set(70+wall_displacement, 15, -105);
+    scene.add(mesh);
+    scene.add(mesha);
+    mesh2 = new THREE.Mesh(geometry1, material);
+    mesh2.position.set(-70-wall_displacement, 15, -105);
+    mesh2a = new THREE.Mesh(geometry1, material);
+    mesh2a.position.set(70+wall_displacement, 15, 105);
+
+    scene.add(mesh2);
+    scene.add(mesh2a);
+    mesh3 = new THREE.Mesh(geometry, material);
+    mesh3.rotation.y = Math.PI / 2;
+    mesh3.position.set(105, 15, 0);
+    scene.add(mesh3);
+    mesh4 = mesh3.clone();
+    mesh4.rotation.y = Math.PI / 2;
+    mesh4.position.set(-105, 15, 0);
+    scene.add(mesh4);
+
+    ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130), //地板
+    new THREE.MeshLambertMaterial({
+        color: 0xffffff
+    }));
+
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+    
+    var ambientLight = new THREE.AmbientLight(0x111111); //地板光
+    scene.add(ambientLight);
+
+   // document.body.appendChild(renderer.domElement);
+	window.addEventListener ('resize', onWindowResize, false); //畫面維持相對大小
+    // add first puck
+    pucks.push(newPuck());
+    // add remaining pucks, invisible and zero intensity
+    
+    for (var i = 1; i < 15; i++) {
+        var thispuck = newPuck();
+        thispuck.mesh.visible = false;
+        thispuck.pointLight.intensity = 0;
+        pucks.push(thispuck);
+    }
+    //controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // start first new puck
+    setTimeout (addNewPuck, 1000);
+    ////////////////////////mouse///////////////////////////
+    raycaster = new THREE.Raycaster();
+    pickables = [ground];
+   // theCanvas.addEventListener('mousedown', onDocumentMouseDown, false);
+    theCanvas.addEventListener('mousemove', onDocumentMouseMove, false);
+	
+	var obj = localStorage.getItem("Scores");
+	var record = JSON.parse(obj);
+	if(record != null){
+		for (var i = 0; i < record.length; i++){
+			records.push({
+				name: record[i].name,
+				score: record[i].score
+			});
+		}
+	}
+
+	life = document.getElementById("life"); //生命數
+	score = document.getElementById("score"); //分數
+	counter = document.getElementById("counter");//剩餘時間
+
+}
+
+function addNewPuck() {
+    pucks[puck_counter].mesh.visible = true;
+    pucks[puck_counter].pointLight.intensity = 0.3;
+    puck_counter++;
+  
+    if (puck_counter < 15)
+        setTimeout (addNewPuck, 1000); //每秒新增一個球
+}
+
+function check(){
+	if (counternumber == 0 ){
+		for(var i =0 ; i<15; i++){
+			if(pucks[i].mesh.visible==true) {
+				scores+=500;}  
+			}
+		result = false;
+	}else if (userlife == 0){
+		result = false;
+	}
+}
+
+function onDocumentMouseMove(event) {
+    event.preventDefault();
+    mouse.x = (event.clientX / ww) * 2 - 1;
+    mouse.y = -(event.clientY / hh) * 2 + 1;
+   
+    var vector = new THREE.Vector3(mouse.x, mouse.y, 1).unproject(camera);
+    raycaster.set(camera.position, vector.sub(camera.position).normalize());
+    var intersects = raycaster.intersectObjects(pickables);
+    if (intersects.length > 0) {
+        document.body.style.cursor = 'pointer';
+    } else {
+        document.body.style.cursor = 'auto';
+    }
+    if (intersects.length > 0) { //球拍位置
+        paddle.position.x = intersects[0].point.x;
+        paddle1.position.x = intersects[0].point.x;
+    }
+}
+function timer(){	//統計
+	 if (counternumber == 0){ 
+		clearTimeout(counterid);
+	 }else{
+		counternumber--;
+		if(counterid){
+			clearTimeout(counterid);
+		}
+		counterid = setTimeout(timer,1500);
+	 }
+}
+function wallOpen(){
+	if(Math.random() > 0.25){
+		wall_displacement-=0.3;
+	}else{
+		wall_displacement+=0.8;
+	}
+}
+
+function animate() {
+
+    var dt = clock.getDelta();
+    pucks.forEach(function (puck) {
+        puck.update(dt);
+        puck.collision();
+    });
+
+	check();
+    meshMaterial.uniforms.time.value += dt * 2;
+
+    if(result){
+		if(counternumber < 25){
+			wallOpen();
+		}
+		mesh.position.set(-70+wall_displacement, 15, 105);
+		mesha.position.set(70-wall_displacement, 15, -105);
+		mesh2.position.set(-70+wall_displacement, 15, -105);
+		mesh2a.position.set(70-wall_displacement, 15, 105);
+		
+		requestAnimationFrame(animate);
+		renderer.render(sceneBack, cameraBack);
+		renderer.render(scene, camera);
+		
+	}else{ 
+		if(userlife > 0){
+			meshc	= new THREEx.Text("You");
+			mesh1c	= new THREEx.Text("Win!!");
+			winSound.play();
+		}else{
+			meshc	= new THREEx.Text("You");
+			mesh1c	= new THREEx.Text("Lose!!");
+			loseSound.play();
+		}
+
+		meshc.scale.multiplyScalar(30);
+		meshc.position.y = 220;
+		meshc.position.x = -70;
+		meshc.position.z = 120;
+		meshc.rotation.x = -Math.PI / 4;
+		
+		mesh1c.scale.multiplyScalar(30);
+		mesh1c.position.y	= 220;
+		mesh1c.position.x	= 70;
+		mesh1c.position.z = 120;
+		mesh1c.rotation.x = -Math.PI / 4;
+		scene.add(meshc);
+		scene.add(mesh1c);
+		renderer.render(scene, camera);
+		records.push({
+			name: user_name,
+			score: scores
+		});
+		var obj = JSON.stringify(records);
+		localStorage.setItem("Scores", obj);
+		counternumber = 0;
+	}
+	//顯示剩餘秒數、生命及分數
+	 counter.innerHTML = counternumber;
+	 life.innerHTML = userlife;	
+	 score.innerHTML = scores;
+}
+
+function onWindowResize (){
+    ww = theCanvasFrame.clientWidth;
+    hh = theCanvasFrame.clientHeight;
+	camera.aspect = ww / hh;
+	camera.updateProjectionMatrix();
+	renderer.setSize (ww, hh);
+}
+
+function searchUser(Username) { //搜尋使用者 取得最高分紀錄
+	var bubble = -1;
+    for (var i = 0; i < records.length; i++) {
+        if (records[i].name == Username) {
+			if(records[i].score > bubble){
+				bubble =  records[i].score;
+			}
+        }
+    }
+	return bubble;
+}
+
+
+
+$("#login").click(function () {
+	if(result == false){
+		alert("please enter 'reload button' and try again!")
+	}else{
+		animate();
+		timer();
+		var name = document.getElementById('user').value;
+		user_name = name;
+		var User_score = searchUser(name);
+		if (User_score >= 0) {
+			document.getElementById('bestScore').innerHTML = "你的最高分: " + User_score;
+		} else{
+			document.getElementById('bestScore').innerHTML = "Welcome! " + user_name;
+		}
+	}
+});
+
+$("#printLog").click(function () {
+
+    var obj = localStorage.getItem("Scores");
+
+    var record = JSON.parse(obj);
+
+    for (var i = 0; i < record.length; i++){
+		alert(record[i].name + ": " + record[i].score);
+	}
+});
+$("#clear").click(function(){
+	window.localStorage.clear();
+    alert("clear all cache")
+});
+
+$("#reload").click(function(){
+    window.location.reload();
+});
+
+
+</script>
+
+</body>
+
+</html>

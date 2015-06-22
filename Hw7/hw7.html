@@ -23,15 +23,15 @@ body {
 </head>
 
 <div id="canvasFrame" align="center">
-	³Ñ¾l®É¶¡: <label id="counter" align="center"></label>&nbsp&nbsp&nbsp&nbsp
-	¥Í©R­È: <label id="life"  align="center" ></label>&nbsp&nbsp&nbsp&nbsp
-	¤À¼Æ: <label id="score"  align="center" ></label>&nbsp&nbsp&nbsp&nbsp
+	å‰©é¤˜æ™‚é–“: <label id="counter" align="center"></label>&nbsp&nbsp&nbsp&nbsp
+	ç”Ÿå‘½å€¼: <label id="life"  align="center" ></label>&nbsp&nbsp&nbsp&nbsp
+	åˆ†æ•¸: <label id="score"  align="center" ></label>&nbsp&nbsp&nbsp&nbsp
 	<canvas id="canvas"></canvas>
 </div>
 
 <div id="init" style="margin: 10px;   float:left">
 	
-	<br><font face="verdana" size = "12">ª±®a¦WºÙ:
+	<br><font face="verdana" size = "12">ç©å®¶åç¨±:
 		<input id="user" type="text" value="" >
 	</br>
 	<button id="login">Login and Play</button>
@@ -41,9 +41,9 @@ body {
 		<p id='bestScore'></p>
 	<p id='bestScore'></p>
 
-	<font face="verdana" size = "4"  color="red">»¡©ú:¿é¤Jª±®a¦WºÙ«á«ö¤U'login and play'¶}©l¶i¦æ¹CÀ¸<br>
-	<font face="verdana" size = "4"  color="red">®É¶¡¨ì¦Ó¥Í©R­È¨S¦³Âk¹s§YÀò³Ó<br>
-	<font face="verdana" size = "4"  color="red">Àò³Ó®É¨C¤@­Ó¦b³õ¤Wªº²yÃB¥~+500¤À<br>
+	<font face="verdana" size = "4"  color="red">èªªæ˜:è¼¸å…¥ç©å®¶åç¨±å¾ŒæŒ‰ä¸‹'login and play'é–‹å§‹é€²è¡ŒéŠæˆ²<br>
+	<font face="verdana" size = "4"  color="red">æ™‚é–“åˆ°è€Œç”Ÿå‘½å€¼æ²’æœ‰æ­¸é›¶å³ç²å‹<br>
+	<font face="verdana" size = "4"  color="red">ç²å‹æ™‚æ¯ä¸€å€‹åœ¨å ´ä¸Šçš„çƒé¡å¤–+500åˆ†<br>
 
 	
 </div>
@@ -244,14 +244,14 @@ init();
 
 function init() {
 	
-	//­µ®ÄÀÉ¸ü¤J
+	//éŸ³æ•ˆæª”è¼‰å…¥
 	winSound = document.getElementById ('winSound');
 	loseSound = document.getElementById ('loseSound');
 	pongSound = document.getElementById ('pongsound');
 	pongsound = document.getElementById ('pongsound');
 	outSound = document.getElementById ('outSound');
 	
-	//µe¥¬¸ü¤J
+	//ç•«å¸ƒè¼‰å…¥
     theCanvas = document.getElementById("canvas");
     theCanvasFrame = document.getElementById("canvasFrame");
 
@@ -275,13 +275,13 @@ function init() {
         fragmentShader: document.getElementById('fragmentShader').textContent
     });
 
-	//­I´º-ShaderMaterial
+	//èƒŒæ™¯-ShaderMaterial
     sceneBack = new THREE.Scene();
     cameraBack = new THREE.OrthographicCamera(-10, 10, 10, -10, 1, 100);
     cameraBack.position.z = 5;
     cameraBack.lookAt(new THREE.Vector3(0, 0, 0));
 
-	//¥Î©ó©ñ¸mShaderMaterial ·í§@­I´º
+	//ç”¨æ–¼æ”¾ç½®ShaderMaterial ç•¶ä½œèƒŒæ™¯
     var back = new THREE.Mesh(new THREE.PlaneGeometry(20, 20),
 		meshMaterial
     );
@@ -302,16 +302,16 @@ function init() {
 	camera.lookAt(new THREE.Vector3( 0, 0, 200 ));
     scene.add(camera);
 
-    geometry = new THREE.BoxGeometry(220, 30, 10); //¤W¤U
-	geometry1 = new THREE.BoxGeometry(80, 30, 10); //¥ª¥k
-    geometry2 = new THREE.BoxGeometry(60,30,10);  //²y©ç
-    material = new THREE.MeshBasicMaterial({ //Àğ¾À
+    geometry = new THREE.BoxGeometry(220, 30, 10); //ä¸Šä¸‹
+	geometry1 = new THREE.BoxGeometry(80, 30, 10); //å·¦å³
+    geometry2 = new THREE.BoxGeometry(60,30,10);  //çƒæ‹
+    material = new THREE.MeshBasicMaterial({ //ç‰†å£
         transparent: true,
         color: 0xffffff,
         opacity: 0.4
     });
 	
-    material1 = new THREE.MeshBasicMaterial({ //²y©ç
+    material1 = new THREE.MeshBasicMaterial({ //çƒæ‹
         color: 0xcccccc,
         opacity: 0.4
     });
@@ -344,7 +344,7 @@ function init() {
     mesh4.position.set(-105, 15, 0);
     scene.add(mesh4);
 
-    ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130), //¦aªO
+    ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200, 130, 130), //åœ°æ¿
     new THREE.MeshLambertMaterial({
         color: 0xffffff
     }));
@@ -352,11 +352,11 @@ function init() {
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
     
-    var ambientLight = new THREE.AmbientLight(0x111111); //¦aªO¥ú
+    var ambientLight = new THREE.AmbientLight(0x111111); //åœ°æ¿å…‰
     scene.add(ambientLight);
 
    // document.body.appendChild(renderer.domElement);
-	window.addEventListener ('resize', onWindowResize, false); //µe­±ºû«ù¬Û¹ï¤j¤p
+	window.addEventListener ('resize', onWindowResize, false); //ç•«é¢ç¶­æŒç›¸å°å¤§å°
     // add first puck
     pucks.push(newPuck());
     // add remaining pucks, invisible and zero intensity
@@ -387,9 +387,9 @@ function init() {
 		}
 	}
 
-	life = document.getElementById("life"); //¥Í©R¼Æ
-	score = document.getElementById("score"); //¤À¼Æ
-	counter = document.getElementById("counter");//³Ñ¾l®É¶¡
+	life = document.getElementById("life"); //ç”Ÿå‘½æ•¸
+	score = document.getElementById("score"); //åˆ†æ•¸
+	counter = document.getElementById("counter");//å‰©é¤˜æ™‚é–“
 
 }
 
@@ -399,7 +399,7 @@ function addNewPuck() {
     puck_counter++;
   
     if (puck_counter < 15)
-        setTimeout (addNewPuck, 1000); //¨C¬í·s¼W¤@­Ó²y
+        setTimeout (addNewPuck, 1000); //æ¯ç§’æ–°å¢ä¸€å€‹çƒ
 }
 
 function check(){
@@ -427,12 +427,12 @@ function onDocumentMouseMove(event) {
     } else {
         document.body.style.cursor = 'auto';
     }
-    if (intersects.length > 0) { //²y©ç¦ì¸m
+    if (intersects.length > 0) { //çƒæ‹ä½ç½®
         paddle.position.x = intersects[0].point.x;
         paddle1.position.x = intersects[0].point.x;
     }
 }
-function timer(){	//²Î­p
+function timer(){	//çµ±è¨ˆ
 	 if (counternumber == 0){ 
 		clearTimeout(counterid);
 	 }else{
@@ -508,7 +508,7 @@ function animate() {
 		localStorage.setItem("Scores", obj);
 		counternumber = 0;
 	}
-	//Åã¥Ü³Ñ¾l¬í¼Æ¡B¥Í©R¤Î¤À¼Æ
+	//é¡¯ç¤ºå‰©é¤˜ç§’æ•¸ã€ç”Ÿå‘½åŠåˆ†æ•¸
 	 counter.innerHTML = counternumber;
 	 life.innerHTML = userlife;	
 	 score.innerHTML = scores;
@@ -522,7 +522,7 @@ function onWindowResize (){
 	renderer.setSize (ww, hh);
 }
 
-function searchUser(Username) { //·j´M¨Ï¥ÎªÌ ¨ú±o³Ì°ª¤À¬ö¿ı
+function searchUser(Username) { //æœå°‹ä½¿ç”¨è€… å–å¾—æœ€é«˜åˆ†ç´€éŒ„
 	var bubble = -1;
     for (var i = 0; i < records.length; i++) {
         if (records[i].name == Username) {
@@ -546,7 +546,7 @@ $("#login").click(function () {
 		user_name = name;
 		var User_score = searchUser(name);
 		if (User_score >= 0) {
-			document.getElementById('bestScore').innerHTML = "§Aªº³Ì°ª¤À: " + User_score;
+			document.getElementById('bestScore').innerHTML = "ä½ çš„æœ€é«˜åˆ†: " + User_score;
 		} else{
 			document.getElementById('bestScore').innerHTML = "Welcome! " + user_name;
 		}
